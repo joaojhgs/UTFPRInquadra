@@ -175,4 +175,21 @@ module.exports = app =>{
             return res.status(error).send('Não foi possível desfazer a reserva. Tente novamente')
         }
     });
+
+    app.get('/myReservation', (req, res, next) => auth(req, res, next, 'User'), async (req, res) => {
+        const { authorization } = req.headers
+        const token = authorization?.split(' ')[1]
+        const user = jsonwebtoken.verify(token, process.env.JWT_SECRET_TOKEN, {complete: true})
+
+        const userId = user.payload.id
+
+        const myReservation = await prisma.reservation.findMany({
+            where: {
+                participants: userId
+            }
+        })
+
+        return res.send(myReservation)
+    })
+
 }
